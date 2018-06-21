@@ -7,9 +7,19 @@ export default function getStyle(theme={}) {
   const appStyle = {...defaultStyle, ...theme};
   return StyleSheet.create({
     container: {
-      paddingLeft: 5,
-      paddingRight: 5,
       backgroundColor: appStyle.calendarBackground
+    },
+    containerYear: {
+      height: 400, 
+      backgroundColor: '#FFFFFFCC'   
+    },
+    selectedYear: {
+      fontSize: 20,
+      color: appStyle.selectedYearColor
+    },
+    simpleYear: {
+      fontSize: 18,
+      color: appStyle.textColor
     },
     monthView: {
       backgroundColor: appStyle.calendarBackground

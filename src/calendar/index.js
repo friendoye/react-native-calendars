@@ -1,10 +1,14 @@
 import React, {Component} from 'react';
 import {
   View,
-  ViewPropTypes
+  ViewPropTypes,
+  FlatList,
+  Text,
+  TouchableOpacity
 } from 'react-native';
 import PropTypes from 'prop-types';
 
+const isEqual = require('lodash.isequal');
 import XDate from 'xdate';
 import dateutils from '../dateutils';
 import {xdateToData, parseDate} from '../interface';
@@ -75,8 +79,20 @@ class Calendar extends Component {
     // Handler which gets executed when press arrow icon left. It receive a callback can go back month
     onPressArrowLeft: PropTypes.func,
     // Handler which gets executed when press arrow icon left. It receive a callback can go next month
-    onPressArrowRight: PropTypes.func
+    onPressArrowRight: PropTypes.func,
+
+    // Enables year picker component
+    enableYearEdit: PropTypes.bool,
+    // Min year in year picker
+    minYear: PropTypes.number,
+    // Max year in year picker
+    maxYear: PropTypes.number
   };
+
+  static defaultProps = {
+    minYear: 1990,
+    maxYear: 2025
+  }
 
   constructor(props) {
     super(props);
@@ -88,14 +104,22 @@ class Calendar extends Component {
       currentMonth = XDate();
     }
     this.state = {
-      currentMonth
+      currentMonth,
+      showYearPicker: false,
     };
+
+    const { minYear, maxYear } = props
+    this.years = [];
+    for (let i = minYear; i <= maxYear; i++) {
+      this.years.push({key: i});
+    }
 
     this.updateMonth = this.updateMonth.bind(this);
     this.addMonth = this.addMonth.bind(this);
     this.pressDay = this.pressDay.bind(this);
     this.longPressDay = this.longPressDay.bind(this);
     this.shouldComponentUpdate = shouldComponentUpdate;
+    this.toggleYearMode = this.toggleYearMode.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -241,6 +265,41 @@ class Calendar extends Component {
     return (<View style={this.style.week} key={id}>{week}</View>);
   }
 
+  computeInitialScrollIndex = state => {
+    const { minYear, maxYear } = this.props
+    const currentYear = state.currentMonth && state.currentMonth.getFullYear()
+    let clampYear = Math.max(currentYear, minYear)
+    clampYear = Math.min(currentYear, maxYear)
+    const targetItem = clampYear ? {key: clampYear} : {key: Math.floor((maxYear + minYear) / 2)}
+    const index = this.years.findIndex(item => isEqual(item, targetItem))
+    return index
+  }
+
+  toggleYearMode() {
+    this.setState(prevState => ({
+      showYearPicker: !prevState.showYearPicker,
+      initialScrollIndex: this.computeInitialScrollIndex(prevState)
+    }));
+  }
+
+  changeCalendarYear = year => {
+    this.setState(prevState => ({
+      currentMonth: prevState.currentMonth.clone().setFullYear(year)
+    }))
+  }
+
+  getCurrentYear = () => this.state.currentMonth.getFullYear()
+
+  renderYearItem = ({ item }) => (
+    <TouchableOpacity onPress={() => this.changeCalendarYear(item.key)}>
+      <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44}}>
+        <Text style={this.getCurrentYear() === item.key ? this.style.selectedYear : this.style.simpleYear}>
+          {item.key}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
+
   render() {
     const days = dateutils.page(this.state.currentMonth, this.props.firstDay);
     const weeks = [];
@@ -256,23 +315,37 @@ class Calendar extends Component {
         indicator = true;
       }
     }
+    const { showYearPicker, initialScrollIndex } = this.state;
+
     return (
       <View style={[this.style.container, this.props.style]}>
         <CalendarHeader
           theme={this.props.theme}
-          hideArrows={this.props.hideArrows}
+          hideArrows={showYearPicker || this.props.hideArrows}
           month={this.state.currentMonth}
           addMonth={this.addMonth}
           showIndicator={indicator}
           firstDay={this.props.firstDay}
           renderArrow={this.props.renderArrow}
           monthFormat={this.props.monthFormat}
-          hideDayNames={this.props.hideDayNames}
+          hideDayNames={showYearPicker || this.props.hideDayNames}
           weekNumbers={this.props.showWeekNumbers}
           onPressArrowLeft={this.props.onPressArrowLeft}
           onPressArrowRight={this.props.onPressArrowRight}
+          onPressTitle={this.props.enableYearEdit && this.toggleYearMode}
         />
-        <View style={this.style.monthView}>{weeks}</View>
+        {!showYearPicker && <View style={this.style.monthView}>{weeks}</View>}
+        {showYearPicker && <FlatList
+          ref={ref => { this.flatListRef = ref }}
+          style={this.style.containerYear}
+          data={this.years}
+          getItemLayout={(data, index) => (
+            {length: 44, offset: 44 * index, index}
+          )}
+          initialScrollIndex={initialScrollIndex}
+          renderItem={this.renderYearItem}
+          keyExtractor={(item, index) => item.key.toString()}
+        />}
       </View>);
   }
 }

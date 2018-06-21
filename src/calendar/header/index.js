@@ -18,7 +18,8 @@ class CalendarHeader extends Component {
     hideDayNames: PropTypes.bool,
     weekNumbers: PropTypes.bool,
     onPressArrowLeft: PropTypes.func,
-    onPressArrowRight: PropTypes.func
+    onPressArrowRight: PropTypes.func,
+    onPressTitle: PropTypes.func
   };
 
   constructor(props) {
@@ -113,9 +114,11 @@ class CalendarHeader extends Component {
         <View style={this.style.header}>
           {leftArrow}
           <View style={{ flexDirection: 'row' }}>
-            <Text allowFontScaling={false} style={this.style.monthText} accessibilityTraits='header'>
-              {this.props.month.toString(this.props.monthFormat ? this.props.monthFormat : 'MMMM yyyy')}
-            </Text>
+            <TouchableOpacity disabled={!this.props.onPressTitle} onPress={this.props.onPressTitle}>
+              <Text allowFontScaling={false} style={this.style.monthText} accessibilityTraits='header'>
+                {this.props.month.toString(this.props.monthFormat ? this.props.monthFormat : 'MMMM yyyy')}
+              </Text>
+            </TouchableOpacity>
             {indicator}
           </View>
           {rightArrow}

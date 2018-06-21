@@ -40,6 +40,13 @@ export default function shouldComponentUpdate(nextProps, nextState) {
     return prev;
   }, shouldUpdate);
 
+  if (nextState.showYearPicker !== this.state.showYearPicker) {
+    shouldUpdate = {
+      update: true,
+      field: 'yearPicker'
+    };
+  }
+
   if (nextState.currentMonth !== this.state.currentMonth) {
     shouldUpdate = {
       update: true,
