@@ -283,9 +283,7 @@ class Calendar extends Component {
   }
 
   changeCalendarYear = year => {
-    this.setState(prevState => ({
-      currentMonth: prevState.currentMonth.clone().setFullYear(year)
-    }))
+    this.updateMonth(this.state.currentMonth.clone().setFullYear(year))
   }
 
   getCurrentYear = () => this.state.currentMonth.getFullYear()
