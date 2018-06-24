@@ -316,7 +316,7 @@ class Calendar extends Component {
       }
     }
     const { showYearPicker, initialScrollIndex } = this.state;
-
+    const containerYearStyle = [this.style.containerYear, this.props.style && this.props.style.containerYear]
     return (
       <View style={[this.style.container, this.props.style]}>
         <CalendarHeader
@@ -337,10 +337,10 @@ class Calendar extends Component {
         {!showYearPicker && <View style={this.style.monthView}>{weeks}</View>}
         {showYearPicker && <FlatList
           ref={ref => { this.flatListRef = ref }}
-          style={this.style.containerYear}
+          style={containerYearStyle}
           data={this.years}
           getItemLayout={(data, index) => (
-            {length: 44, offset: 44 * index, index}
+            {flex: 1, length: 44, offset: 44 * index, index}
           )}
           initialScrollIndex={initialScrollIndex}
           renderItem={this.renderYearItem}

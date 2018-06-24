@@ -10,8 +10,7 @@ export default function getStyle(theme={}) {
       backgroundColor: appStyle.calendarBackground
     },
     containerYear: {
-      height: 400, 
-      backgroundColor: '#FFFFFFCC'   
+      minHeight: 280
     },
     selectedYear: {
       fontSize: 20,
