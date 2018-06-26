@@ -86,7 +86,9 @@ class Calendar extends Component {
     // Min year in year picker
     minYear: PropTypes.number,
     // Max year in year picker
-    maxYear: PropTypes.number
+    maxYear: PropTypes.number,
+    // Change current date when year is selected
+    setDateOnYearChange: PropTypes.bool
   };
 
   static defaultProps = {
@@ -283,7 +285,12 @@ class Calendar extends Component {
   }
 
   changeCalendarYear = year => {
-    this.updateMonth(this.state.currentMonth.clone().setFullYear(year))
+    const { setDateOnYearChange, onDayPress } = this.props
+    const newDate = this.state.currentMonth.clone().setFullYear(year)
+    this.updateMonth(newDate)
+    if (setDateOnYearChange && onDayPress) {
+      onDayPress(xdateToData(newDate))
+    }
   }
 
   getCurrentYear = () => this.state.currentMonth.getFullYear()
