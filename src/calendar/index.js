@@ -87,8 +87,8 @@ class Calendar extends Component {
     minYear: PropTypes.number,
     // Max year in year picker
     maxYear: PropTypes.number,
-    // Change current date when year is selected
-    setDateOnYearChange: PropTypes.bool
+    // Toggle year mode notifier
+    isYearModeCallback: PropTypes.func
   };
 
   static defaultProps = {
@@ -281,23 +281,32 @@ class Calendar extends Component {
     this.setState(prevState => ({
       showYearPicker: !prevState.showYearPicker,
       initialScrollIndex: this.computeInitialScrollIndex(prevState)
-    }));
+    }), state => {
+      const { isYearModeCallback } = this.props
+      
+      if (isYearModeCallback) {
+        isYearModeCallback(state.showYearPicker)
+      }
+    });
   }
 
   changeCalendarYear = year => {
-    const { setDateOnYearChange, onDayPress } = this.props
-    const newDate = this.state.currentMonth.clone().setFullYear(year)
-    this.updateMonth(newDate)
-    if (setDateOnYearChange && onDayPress) {
-      onDayPress(xdateToData(newDate))
+    const current = parseDate(this.props.current);
+    if (current) {
+      const newDate = current.clone().setFullYear(year)
+      this.pressDay(xdateToData(newDate))
+    } else {
+      const newDate = this.state.currentMonth.clone().setFullYear(year)
+      this.updateMonth(newDate)
     }
+    this.toggleYearMode()
   }
 
   getCurrentYear = () => this.state.currentMonth.getFullYear()
 
   renderYearItem = ({ item }) => (
     <TouchableOpacity onPress={() => this.changeCalendarYear(item.key)}>
-      <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44}}>
+      <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, width: '100%'}}>
         <Text style={this.getCurrentYear() === item.key ? this.style.selectedYear : this.style.simpleYear}>
           {item.key}
         </Text>
@@ -324,7 +333,7 @@ class Calendar extends Component {
     const containerYearStyle = [this.style.containerYear, this.props.style && this.props.style.containerYear]
     return (
       <View style={[this.style.container, this.props.style]}>
-        <CalendarHeader
+        {!showYearPicker && <CalendarHeader
           theme={this.props.theme}
           hideArrows={showYearPicker || this.props.hideArrows}
           month={this.state.currentMonth}
@@ -338,7 +347,7 @@ class Calendar extends Component {
           onPressArrowLeft={this.props.onPressArrowLeft}
           onPressArrowRight={this.props.onPressArrowRight}
           onPressTitle={this.props.enableYearEdit && this.toggleYearMode}
-        />
+        />}
         {!showYearPicker && <View style={this.style.monthView}>{weeks}</View>}
         {showYearPicker && <FlatList
           ref={ref => { this.flatListRef = ref }}
