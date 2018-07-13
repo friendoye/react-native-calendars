@@ -152,11 +152,18 @@ class Calendar extends Component {
     });
   }
 
-  _handleDayInteraction(date, interaction) {
+  _checkIfDayWithinAllowedInterval(date) {
     const day = parseDate(date);
     const minDate = parseDate(this.props.minDate);
     const maxDate = parseDate(this.props.maxDate);
-    if (!(minDate && !dateutils.isGTE(day, minDate)) && !(maxDate && !dateutils.isLTE(day, maxDate))) {
+    return (
+      !(minDate && !dateutils.isGTE(day, minDate)) && !(maxDate && !dateutils.isLTE(day, maxDate))
+    );
+  }
+
+  _handleDayInteraction(date, interaction) {
+    const day = parseDate(date);
+    if (this._checkIfDayWithinAllowedInterval(date)) {
       const shouldUpdateMonth = this.props.disableMonthChange === undefined || !this.props.disableMonthChange;
       if (shouldUpdateMonth) {
         this.updateMonth(day);
@@ -268,13 +275,13 @@ class Calendar extends Component {
   }
 
   computeInitialScrollIndex = state => {
-    const { minYear, maxYear } = this.props
-    const currentYear = state.currentMonth && state.currentMonth.getFullYear()
-    let clampYear = Math.max(currentYear, minYear)
-    clampYear = Math.min(currentYear, maxYear)
-    const targetItem = clampYear ? {key: clampYear} : {key: Math.floor((maxYear + minYear) / 2)}
-    const index = this.years.findIndex(item => isEqual(item, targetItem))
-    return index
+    const { minYear, maxYear } = this.props;
+    const currentYear = state.currentMonth && state.currentMonth.getFullYear();
+    let clampYear = Math.max(currentYear, minYear);
+    clampYear = Math.min(currentYear, maxYear);
+    const targetItem = clampYear ? {key: clampYear} : {key: Math.floor((maxYear + minYear) / 2)};
+    const index = this.years.findIndex(item => isEqual(item, targetItem));
+    return index;
   }
 
   toggleYearMode() {
@@ -282,24 +289,24 @@ class Calendar extends Component {
       showYearPicker: !prevState.showYearPicker,
       initialScrollIndex: this.computeInitialScrollIndex(prevState)
     }), state => {
-      const { isYearModeCallback } = this.props
+      const { isYearModeCallback } = this.props;
       
       if (isYearModeCallback) {
-        isYearModeCallback(state.showYearPicker)
+        isYearModeCallback(state.showYearPicker);
       }
     });
   }
 
   changeCalendarYear = year => {
     const current = parseDate(this.props.current);
-    if (current) {
-      const newDate = current.clone().setFullYear(year)
-      this.pressDay(xdateToData(newDate))
+    const newDate = current && current.clone().setFullYear(year);
+    if (current && this._checkIfDayWithinAllowedInterval(xdateToData(newDate))) {
+      this.pressDay(xdateToData(newDate));
     } else {
-      const newDate = this.state.currentMonth.clone().setFullYear(year)
-      this.updateMonth(newDate)
+      const newDate = this.state.currentMonth.clone().setFullYear(year);
+      this.updateMonth(newDate);
     }
-    this.toggleYearMode()
+    this.toggleYearMode();
   }
 
   getCurrentYear = () => this.state.currentMonth.getFullYear()
